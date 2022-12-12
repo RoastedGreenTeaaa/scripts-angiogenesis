@@ -1,0 +1,8 @@
+pass = NotebookDirectory[];
+SetDirectory[pass];
+
+ResultControl = Result["ctr"];
+ResultKnockout = Result["ko"];
+
+FileName = "Figure_4CD_code.xlsx";
+ExportSheet[ResultControl, ResultKnockout, FileName];
