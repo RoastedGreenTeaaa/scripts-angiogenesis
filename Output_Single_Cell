@@ -1,2 +1,51 @@
 pass = NotebookDirectory[];
 SetDirectory[pass];
+
+(*Figure 2A*)
+CellType = "NIH3T3";
+Result1cell = Result[CellType, "1cell"];
+Result2cell = Result[CellType, "2cell"];
+FileName = "Figure_2A.xlsx";
+ExportSpeed[Result1cell, Result2cell, FileName];
+
+(*Figure 2B and 2E*)
+CellType = "MDCK";
+Result1cell = Result[CellType, "1cell"];
+Result2cell = Result[CellType, "2cell"];
+FileName = "Figure_2B.xlsx";
+ExportSpeed[Result1cell, Result2cell, FileName];
+FileName = "Figure_2E.xlsx";
+ExportMSD[Result1cell, Result2cell, FileName];
+
+(*Figure 2C and 2D*)
+CellType = "MS-1";
+Result1cell = Result[CellType, "1cell"];
+Result2cell = Result[CellType, "2cell"];
+FileName = "Figure_2C.xlsx";
+ExportSpeed[Result1cell, Result2cell, FileName];
+FileName = "Figure_2D.xlsx";
+ExportMSD[Result1cell, Result2cell, FileName];
+
+(*Figure 2F*)
+CellType = "Vero";
+Result1cell = Result[CellType, "1cell"];
+Result2cell = Result[CellType, "2cell"];
+FileName = "Figure_2F.xlsx";
+ExportMSD[Result1cell, Result2cell, FileName];
+
+(*Figure 2G*)
+CellType = "COS7";
+Result1cell = Result[CellType, "1cell"];
+Result2cell = Result[CellType, "2cell"];
+FileName = "Figure_2G.xlsx";
+ExportMSD[Result1cell, Result2cell, FileName];
+
+(*Figure 2H, 2I and 2J*)
+CellList = {"MS-1", "MDCK", "Vero", "COS7"};
+Table[Result1cell[CellType] = Result[CellType, "1cell"]; Result2cell[CellType] = Result[CellType, "2cell"], {CellType, CellList}];
+FileName = "Figure_2H.xlsx";
+ExportPersistence[Result1cell, Result2cell, CellList, FileName];
+FileName = "Figure_2I.xlsx";
+ExportDR[Result1cell, Result2cell, CellList, FileName];
+FileName = "Figure_2J.xlsx";
+ExportOP[Result1cell, Result2cell, CellList, FileName];
