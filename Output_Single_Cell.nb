@@ -26,19 +26,23 @@ ExportSpeed[Result1cell, Result2cell, FileName];
 FileName = "Figure_2D.xlsx";
 ExportMSD[Result1cell, Result2cell, FileName];
 
-(*Figure 2F*)
+(*Figure 2F and Figure S2B*)
 CellType = "Vero";
 Result1cell = Result[CellType, "1cell"];
 Result2cell = Result[CellType, "2cell"];
 FileName = "Figure_2F.xlsx";
 ExportMSD[Result1cell, Result2cell, FileName];
+FileName = "Figure_S2B.xlsx";
+ExportSpeed[Result1cell, Result2cell, FileName];
 
-(*Figure 2G*)
+(*Figure 2G and Figure S2C*)
 CellType = "COS7";
 Result1cell = Result[CellType, "1cell"];
 Result2cell = Result[CellType, "2cell"];
 FileName = "Figure_2G.xlsx";
 ExportMSD[Result1cell, Result2cell, FileName];
+FileName = "Figure_S2C.xlsx";
+ExportSpeed[Result1cell, Result2cell, FileName];
 
 (*Figure 2H, 2I and 2J*)
 CellList = {"MS-1", "MDCK", "Vero", "COS7"};
@@ -49,3 +53,24 @@ FileName = "Figure_2I.xlsx";
 ExportDR[Result1cell, Result2cell, CellList, FileName];
 FileName = "Figure_2J.xlsx";
 ExportOP[Result1cell, Result2cell, CellList, FileName];
+
+(*Figure S2A*)
+CellType = "10T1-2";
+Result1cell = Result[CellType, "1cell"];
+Result2cell = Result[CellType, "2cell"];
+FileName = "Figure_S2A.xlsx";
+ExportSpeed[Result1cell, Result2cell, FileName];
+
+(*Figure S2D*)
+CellType = "HUVEC_C2519";
+Result1cell = Result[CellType, "1cell"];
+Result2cell = Result[CellType, "2cell"];
+FileName = "Figure_S2D.xlsx";
+ExportSpeed[Result1cell, Result2cell, FileName];
+
+(*Figure S2E*)
+CellType = "HUVEC_03331";
+Result1cell = Result[CellType, "1cell"];
+Result2cell = Result[CellType, "2cell"];
+FileName = "Figure_S2E.xlsx";
+ExportSpeed[Result1cell, Result2cell, FileName];
