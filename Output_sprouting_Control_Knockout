@@ -1,0 +1,29 @@
+pass = NotebookDirectory[];
+SetDirectory[pass];
+
+ResultTipStalkCtr = Result["Control", "tip_stalk"];
+ResultStalkCtr = Result["Control", "stalk"];
+ResultTipCtr = Result["Control", "tip"];
+ResultTipStalkKO = Result["Knockout", "tip_stalk"];
+ResultStalkKO = Result["Knockout", "stalk"];
+ResultTipKO = Result["Knockout", "tip"];
+
+(*Figure 4H, 4I, 4J and 4K*)
+FileName = "Figure_4H-K.xlsx";
+CtrKOExportTip[ResultTipStalkCtr, ResultTipStalkKO, FileName];
+
+(*Figure S3F*)
+FileName = "Figure_S3F.xlsx"
+ExportPassing[ResultTipStalkCtr, FileName];
+
+(*Figure S3G*)
+FileName = "Figure_S3G.xlsx";
+ExportSprout[ResultStalkCtr, ResultTipCtr, FileName];
+
+(*Figure S3H*)
+FileName = "Figure_S3H.xlsx"
+ExportPassing[ResultTipStalkKO, FileName];
+
+(*Figure S3I*)
+FileName = "Figure_S3I.xlsx";
+ExportSprout[ResultStalkKO, ResultTipKO, FileName];
