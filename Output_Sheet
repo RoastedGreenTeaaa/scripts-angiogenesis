@@ -5,5 +5,5 @@ ResultControl = Result["ctr"];
 ResultKnockout = Result["ko"];
 
 (*Figure 4C and 4D*)
-FileName = "Figure_4CD_code.xlsx";
+FileName = "Figure_4CD.xlsx";
 ExportSheet[ResultControl, ResultKnockout, FileName];
