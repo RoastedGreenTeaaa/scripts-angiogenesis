@@ -1,4 +1,4 @@
-Clear[MeanSPEED, MSD, DR, OP, Result, BoxHist, MSDLine, PersistenceBar, DRLine, OPLine, ExportSpeed, ExportMSD, ExportPersistence, ExportDR, ExportOP]
+Clear[MeanSPEED, MSD, DR, OP, Result, ExportSpeed, ExportMSD, ExportPersistence, ExportDR, ExportOP]
 MeanSPEED[Speed_, Ncell_] := Module[{msp, v0},
     If[Ncell == "2cell",
     v0 = Map[Mean, Speed];
