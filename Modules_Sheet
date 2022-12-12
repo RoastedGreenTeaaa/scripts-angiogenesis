@@ -1,4 +1,4 @@
-Clear[mySMA, DR, MeanSpeed, Result]
+Clear[mySMA, DR, MeanSpeed, Result,ExportSheet]
 mySMA[r_, index_, frame_, cell_] := Module[{blank, sma, r1},
     If[index != 0,
       blank = Table[{"", ""}, {j, 1, index}];
