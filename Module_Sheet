@@ -1,0 +1,58 @@
+Clear[mySMA, DR, MeanSpeed, Result]
+mySMA[r_, index_, frame_, cell_] := Module[{blank, sma, r1},
+    If[index != 0,
+      blank = Table[{"", ""}, {j, 1, index}];
+      Table[sma = Table[r1 = r[[i]][[n ;; n + 2 index]];If[MemberQ[r1, {"", ""}], {"", ""}, Mean[r1]], {n, 1, frame - 2 index}];
+      Join[blank, sma, blank], {i, cell}] 
+      ,r]
+    ];
+
+
+DR[SMA5_, frame_] := Module[{DRall, dr0, d0, d1, d2, DRT},
+    DRall = Table[x = DeleteCases[x, {"", ""}];
+    dr0 = Table[d0 = x[[1 ;; t]];
+                d1 = EuclideanDistance[d0[[1]], d0[[t]]];
+                d2 = Total[Sqrt[Total[Differences[d0]^2, {2}]]];
+                If[d2 != 0.0, d1/d2, Nothing], {t, 2, Length[x]}];
+          Join[dr0, Table["", {n, frame - Length[dr0]}]], {x, SMA5}];
+    DRT = Transpose[DRall];
+    Table[Mean[DeleteCases[DRT[[t]], ""]], {t, 1, 119}]
+    ];
+
+
+MeanSpeed[SMA5_, frame_] := Module[{sp},
+    sp = Table[
+    Table[If[And[x[[n]] != {"", ""}, x[[n + 1]] != {"", ""}], Norm[x[[n + 1]]-x[[n]]], ""], {n, 1, frame - 1}], {x, SMA5}];
+    Mean[DeleteCases[Table[Mean[DeleteCases[v, ""]], {v, sp}] /. Mean[{}] -> "", ""]]
+    ];
+
+
+Result[Type_] := Module[
+    {index = 2, files, sl, data, T, cell, frame, r, crd, SMA5, dr, speed},
+    files = FileNames[All, Type];
+    sl = Length[files];
+    Do[
+      data = Import[files[[s]]][[1]];
+      T[s] = DeleteCases[data[[1]][[2 ;; All]], ""];
+      cell[s] = Length[DeleteCases[data[[1]][[2 ;; All]], ""]];
+      frame[s] = IntegerPart[Last[Transpose[data][[1]]]];
+      r[s] = Table[crd = Transpose[{Transpose[data][[2 i]][[2 ;; All]], Transpose[data][[2 i + 1]][[2 ;; All]]}];
+        Table[If[xy != {"", ""}, xy, {"", ""}], {xy, crd}], {i, 1, cell[s]}]
+    ,{s, sl}];
+    Do[
+      SMA5[s] = mySMA[r[s], index, frame[s], cell[s]];
+      dr[s] = DR[SMA5[s], frame[s]];
+      speed[s] = MeanSpeed[SMA5[s], frame[s]]
+    ,{s, sl}]; 
+    {Table[SMA5[s], {s, sl}], Table[dr[s], {s, sl}], Table[speed[s], {s, sl}]}
+    ];
+    
+    
+ExportSheet[Ctr_, KO_, FileName_] := Module[{ln, TIME, labelsheet, DRsheet, SPsheet},
+    ln = Length[Ctr[[2]][[1]]];
+    TIME = {Table[5 t + 5, {t, ln}]};
+    labelsheet = {{"Time", "Control", "", "", "VE-cadherin KO", "", ""}, {"(min)", "Sample-1", "Sample-2", "Sample-3", "Sample-1", "Sample-2", "Sample-3"}};
+    DRsheet = Join[labelsheet, Transpose[Join[TIME, Ctr[[2]], KO[[2]]]]];
+    SPsheet = Join[{{"Control", "", "", "VE-cadherin KO", "", ""}}, {{"Sample-1","Sample-2", "Sample-3", "Sample-1", "Sample-2", "Sample-3"}}, {Join[Ctr[[3]], KO[[3]]]}];
+    Export[FileName, {"Fig_4C" -> DRsheet, "Fig_4D" -> SPsheet}]
+    ]
