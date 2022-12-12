@@ -1,0 +1,14 @@
+pass = NotebookDirectory[];
+SetDirectory[pass];
+
+ResultTipStalk = Result["Wild_type", "tip_stalk"];
+ResultStalk = Result["Wild_type", "stalk"];
+ResultTip = Result["Wild_type", "tip"];
+
+(*Figure 1G*)
+FileName = "Figure_1G.xlsx";
+ExportPassing[ResultTipStalk, FileName];
+
+(*Figure 1H*)
+FileName = "Figure_1H.xlsx";
+ExportSprout[ResultStalk, ResultTip, FileName];
