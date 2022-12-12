@@ -1,0 +1,133 @@
+Clear[MeanSPEED, MSD, DR, OP, Result, BoxHist, MSDLine, PersistenceBar, DRLine, OPLine, ExportSpeed, ExportMSD, ExportPersistence, ExportDR, ExportOP]
+MeanSPEED[Speed_, Ncell_] := Module[{msp, v0},
+    If[Ncell == "2cell",
+    v0 = Map[Mean, Speed];
+    msp = Table[Mean[{v0[[2 i - 1]], v0[[2 i]]}], {i, Length[v0]/2}],
+    msp = Map[Mean, Speed]]
+    ];
+
+
+MSD[SMA5_, tauMSD_] := Module[{msd0, msdDelt0},
+    msd0 = Table[Table[Mean[Map[Norm, Differences[k, 1, \[Tau]]]^2], {\[Tau], 1, tauMSD}], {k, SMA5}];
+    msdDelt0 = msd0/Table[Range[tauMSD], {n, Length[msd0]}];
+    {msd0, msdDelt0}
+    ];
+  
+
+DR[SMA5_] := Module[{ln, dr0, d0, d1, d2},
+    Table[ln = Length[x];
+        dr0 = Table[d0 = x[[1 ;; t]];
+        d1 = EuclideanDistance[d0[[1]], d0[[t]]];
+        d2 = Total[Sqrt[Total[Differences[d0]^2, {2}]]];If[d2 != 0.0, d1/d2, Nothing],{t, 2, ln}];
+        Join[dr0, Table["", {n, ln - Length[dr0] - 1}]], 
+    {x, SMA5}]
+    ];
+
+
+OP[SMA5_] := Table[Table[Abs[Mean[Exp[I Arg[Differences[x[[1 ;; t]]] . {1, I}]]]], {t, {27, 57, 87, 117}}], {x, SMA5}]
+
+
+Result[CellType_, Ncell_] := Module[{tauMSD, bin, data, cell, frame, r, SMA5, Speed, MeanSpeed, BinSpeed, msd, dr, op},
+    tauMSD = 100;
+    (*{min, max, bin-width}*)
+    bin["10T1-2"] = {0, 20, 1};
+    bin["COS7"] = {0, 10, 0.4};
+    bin["HUVEC_03331"] = {0, 20, 1};
+    bin["HUVEC_C2519"] = {0, 25, 1};
+    bin["MDCK"] = {0, 12, 0.4};
+    bin["MS-1"] = {0, 6.2, 0.2};
+    bin["NIH3T3"] = {0, 26, 1};
+    bin["Vero"] = {0, 10, 0.4};
+    data = Transpose[Import[Ncell <> "\\" <> CellType <> "_" <> Ncell <> ".xlsx", "Data"][[1]]];
+    cell = Length[DeleteCases[Transpose[data][[1]][[2; All]],""][[2 ;; All]]]*ToExpression[StringDrop[Ncell, -4]];
+    frame = Length[data[[1]][[2 ;; All]]];
+    r = Table[Transpose[{data[[2 i]][[2 ;; All]], data[[2 i + 1]][[2 ;; All]]}], {i, cell}];
+    SMA5 = Table[MovingAverage[x, 5], {x, r}];
+    Speed = Table[Map[Norm, Differences[v]], {v, SMA5}];
+    MeanSpeed = MeanSPEED[Speed, Ncell];
+    msd = MSD[SMA5, tauMSD];
+    dr = DR[SMA5];
+    op = OP[SMA5];
+    {MeanSpeed, {Speed, bin[CellType]}, msd, dr, op}
+  ];
+  
+  
+ExportSpeed[data1cell_, data2cell_, FileName_] := Module[{data1, data2, len, v1, v2, v12, sp1, sp2, bin, vlabel, Count1, Count2, Prob1, Prob2, Histlabel, hist12},
+    data1 = data1cell[[1]];
+    data2 = data2cell[[1]];
+    len = Max[Length[data1], Length[data2]];
+    v1 = Join[data1, Table["", {n, len - Length[data1]}]];
+    v2 = Join[data2, Table["", {n, len - Length[data2]}]];
+    v12 = Prepend[Transpose[{v1, v2}], {"1 cell", "2 cell"}];
+    sp1 = Flatten[data1cell[[2]][[1]]];
+    sp2 = Flatten[data2cell[[2]][[1]]];
+    bin = data1cell[[2]][[2]];
+    vlabel = Table[ToString[i] <> "\[LessEqual]v<" <> ToString[i + bin[[3]]], {i, bin[[1]], bin[[2]] - bin[[3]], bin[[3]]}];
+    Count1 = BinCounts[sp1, bin];
+    Prob1 = N[Count1/Total[Count1]];
+    Count2 = BinCounts[sp2, bin];
+    Prob2 = N[Count2/Total[Count2]];
+    Histlabel = {{"", "Count", "", "Probability", ""}, {"Speed", "1 cell", "2 cell", "1 cell", "2 cell"}};
+    hist12 = Join[Histlabel, Transpose[{vlabel, Count1, Count2, Prob1, Prob2}]];
+  Export[FileName, {"Mean_Speed" -> v12, "Histogram" -> hist12}]
+  ];
+
+
+ExportMSD[data1cell_, data2cell_, FileName_] := Module[{MSDExcel, msd, msdt},
+    MSDExcel[msd1_, msd2_] := Module[{msd12, label1, label2, label3},
+        msd12 = Transpose[Join[{Table[5 t, {t, 100}]}, msd1, msd2]];
+        label1 = Join[{"\[Tau](min)"}, Table["Cell-" <> ToString[i], {i, Length[msd1]}]];
+        label2 = Flatten[Table[{"Cell-" <> ToString[i] <> "-1", "Cell-" <> ToString[i] <> "-2"}, {i, Length[msd2]/2}]];
+        label3 = Join[{""}, {"1 Cell"}, Table["", {n, Length[msd1] - 1}], {"2 Cell"}, Table["", {n, Length[msd2] - 1}]];
+        Join[{label3, Join[label1, label2]}, msd12]
+    ];   
+    msd = MSDExcel[data1cell[[3]][[1]], data2cell[[3]][[1]]];
+    msdt = MSDExcel[data1cell[[3]][[2]], data2cell[[3]][[2]]];
+    Export[FileName, {"MSD" -> msd, "MSD_over_tau" -> msdt}]
+    ];
+
+
+ExportPersistence[data1cell_, data2cell_, CellList_, FileName_] := Module[{Persistence, PT1, PT2, len, pt1, pt2, pt12},
+    Persistence[data_] := Module[{tau = 100, fp, speed, msd, result},
+        fp[s_, P_, t_] := 2 s^2 P (t - P (1 - Exp[-t/P]));
+        speed = Map[Mean, data[[2]][[1]]];
+        msd = data[[3]][[1]];
+        result = Table[Minimize[Total[Table[msd[[i]][[t]] - fp[speed[[i]], P, t], {t, 1, tau}]^2], P], {i, Length[speed]}];
+        Table[x[[2]][[1]][[2]], {x, result}]*5
+    ];
+    Table[PT1[cell] = Persistence[data1cell[cell]];
+    PT2[cell] = Persistence[data2cell[cell]], {cell, CellList}];
+    Table[len = Max[Length[PT1[cell]], Length[PT2[cell]]];
+    pt1 = Join[PT1[cell], Table["", {n, len - Length[PT1[cell]]}]];
+    pt2 = Join[PT2[cell], Table["", {n, len - Length[PT2[cell]]}]];
+    pt12[cell] = Prepend[Transpose[{pt1, pt2}], {"1 cell", "2 cell"}], {cell, CellList}];
+    Export[FileName, Table[cell -> pt12[cell], {cell, CellList}]]
+    ];
+
+
+ExportDR[data1cell_, data2cell_, CellList_, FileName_] := Module[{dr1, dr2, dr12, TIME, label1, label2, label3},
+    Table[dr1 = data1cell[cell][[4]];
+        dr2 = data2cell[cell][[4]];
+        TIME = {Table[5 t + 5, {t, Length[dr1[[1]]]}]};
+        label1 = Join[{"(min)"}, Table["Cell-" <> ToString[i], {i, Length[dr1]}]];
+        label2 = Flatten[Table[{"Cell-" <> ToString[i] <> "-1", "Cell-" <> ToString[i] <> "-2"}, {i, Length[dr2]/2}]];
+        label3 = Join[{"Time"}, {"1 Cell"},Table["", {n, Length[dr1] - 1}], {"2 Cell"},Table["", {n, Length[dr2] - 1}]];
+        dr12[cell] = Join[{label3, Join[label1, label2]}, Transpose[Join[TIME, dr1, dr2]]]
+    ,{cell, CellList}];
+    Export[FileName, Table[cell -> dr12[cell], {cell, CellList}]]
+    ];
+
+
+ExportOP[data1cell_, data2cell_, CellList_, FileName_] := Module[{op1, op2, op12, TIME, label1A, label1B, label2A, label2B},
+    TIME = {{150, 300, 450, 600}};
+    Table[
+        op1 = data1cell[cell][[5]];
+        op2 = data2cell[cell][[5]];
+        label1A = {Join[{"Time"}, {"1 cell"}, Table["", {n, Length[op1] - 1}]]};
+        label1B = {Join[{"(min)"}, Table["Cell-" <> ToString[n], {n, Length[op1]}]]};
+        label2A = {Join[{"Time"}, {"2 cell"}, Table["", {n, Length[op2] - 1}]]};
+        label2B = {Join[{"(min)"}, Flatten[Table[{"Cell " <> ToString[n] <> "-1","Cell " <> ToString[n] <> "-2"}, {n, Length[op2]/2}]]]};
+        op12[cell] = Join[label1A, label1B, Transpose[Join[TIME, op1]], label2A, label2B, Transpose[Join[TIME, op2]]]
+    ,{cell, CellList}];
+   Export[FileName, Table[cell -> op12[cell], {cell, CellList}]]
+   ]
