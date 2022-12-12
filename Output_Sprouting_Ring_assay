@@ -1,0 +1,14 @@
+pass = NotebookDirectory[];
+SetDirectory[pass];
+
+ResultTipStalk = Result["Ring_assay", "tip_stalk"];
+ResultStalk = Result["Ring_assay", "stalk"];
+ResultTip = Result["Ring_assay", "tip"];
+
+(*Figure S1H*)
+FileName = "Figure_S1H.xlsx";
+ExportPassing[resultTipStalk, FileName];
+
+(*Figure S1I*)
+FileName = "Figure_S1I.xlsx";
+ExportSprout[resultStalk, resultTip, FileName];
