@@ -1,0 +1,22 @@
+pass = NotebookDirectory[];
+SetDirectory[pass];
+
+(*Figure 6C*)
+FigureSnapshots["Control"]
+FigureSnapshots["Knockout002"]
+FigureSnapshots["Knockout005"]
+
+(*Figure 7G*)
+FigureRate["KO_0.75_0.02"]
+
+(*Figure S5J*)
+FigureSpeedMultiCell["Control", "Knockout002", "Knockout005"]
+
+(*Figure S5M*)
+FigureRotationFlattening["Control"]
+
+(*Figure S5N*)
+FigureRotationFlattening["Knockout"]
+
+(*Figure S6C*)
+FigureRate["KO_0.60_0.02"]
