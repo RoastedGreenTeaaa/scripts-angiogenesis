@@ -1,0 +1,102 @@
+Clear[Result, ExportSpeed2cells, ExportDR2cells, \
+ExportTrajectory2cells]
+Result[Sim_] := 
+  Module[{Trial = 20, time = 2000, cell = 2, Speed, DR, folder, data, 
+    r, phi, r5, phi5, sp, dr},
+   Speed[r_] := 
+    Mean[{Mean[Map[Norm, Differences[r[[1]]]]], 
+      Mean[Map[Norm, Differences[r[[2]]]]]}];
+   DR[r_, cell_] := Module[{t0 = 1, dr0, d0, d1, d2},
+     Do[dr0[i] = Table[d0 = r[[i]][[t0 ;; t]];
+        d1 = EuclideanDistance[d0[[1]], d0[[t - (t0 - 1)]]];
+        d2 = Total[Sqrt[Total[Differences[d0]^2, {2}]]];
+        If[d2 == 0.0, "N/A", d1/d2], {t, t0 + 1, 1100}], {i, cell}];
+     Mean[
+      Table[Take[DeleteCases[dr0[i], "N/A"], {1, 1000, 5}], {i, 
+        cell}]]];
+   
+   
+   Do[folder = 
+     Sim <> "\\2cells_" <> 
+      ToString[NumberForm[k, 4, NumberPadding -> {"0", ""}]];
+    data = 
+     Table[Transpose[
+       Import[folder <> "\\cell0000000" <> ToString[s] <> ".txt", 
+        "Data"]], {s, cell}];
+    r[k] = 
+     Table[Transpose[{data[[i]][[1]], data[[i]][[2]]}], {i, cell}];
+    phi[k] = Table[data[[i]][[3]], {i, cell}];
+    r5[k] = 
+     Table[Table[r[k][[i]][[5 n]], {n, 1, time/5}], {i, cell}];
+    phi5[k] = 
+     Table[Table[phi[k][[i]][[5 n]], {n, 1, time/5}], {i, cell}];
+    , {k, 20}];
+   
+   sp = Table[Speed[r5[k]], {k, 20}];
+   dr = Table[DR[r[k], cell], {k, 20}];
+   {sp, dr, Table[r[k], {k, 20}], Table[phi[k], {k, 20}]}
+   ];
+
+
+ExportDR2cells[ctr_, ko2_, ko5_, FileName_] := 
+  Module[{len, label, DRctr, DRko2, DRko5},
+   len = Length[ctr[[2]][[1]]];
+   label = {Join[{"Time"}, Table["Pair-" <> ToString[k], {k, 20}]]};
+   DRctr = Join[label, Transpose[Join[{5 Range[len]}, ctr[[2]]]]];
+   DRko2 = Join[label, Transpose[Join[{5 Range[len]}, ko2[[2]]]]];
+   DRko5 = Join[label, Transpose[Join[{5 Range[len]}, ko5[[2]]]]];
+   Export[
+    FileName, {"Control" -> DRctr, "Knockout_002" -> DRko2, 
+     "Knockout_005" -> DRko5}]
+   ];
+
+
+ExportSpeed2cells[ctr_, ko2_, ko5_, FileName_] := Module[{result},
+   result = 
+    Join[{{"Control", "KO_0.02", "KO_0.05"}}, 
+     Transpose[{ctr[[1]], ko2[[1]], ko5[[1]]}]];
+   Export[FileName, result]
+   ];
+
+
+ExportTrajectory2cells[result_, T_, FileName_] := 
+ Module[{a2 = 20, b2 = 5, t0 = 1, r, phi, color1, color2, img},
+  r = result[[3]][[1]];
+  phi = result[[4]][[1]];
+  color1 = RGBColor[255/255, 162/255, 76/255];
+  color2 = RGBColor[0/255, 180/255, 176/255];
+  img = Table[
+    If[t == 1, 
+     Show[Graphics[{color1, 
+        Thickness[
+         0.01], {Rotate[Circle[r[[1]][[t0]], {a2, b2}], 
+          phi[[1]][[t0]]], Point[r[[1]][[t0]]]}, {color2, 
+         Rotate[Circle[r[[2]][[t0]], {a2, b2}], phi[[2]][[t0]]], 
+         Point[r[[2]][[t0]]]},
+        Text[
+         Style["t=0", 20, Italic, Black, 
+          FontFamily -> "Cambria Math"], {0, 51}]},
+       PlotRange -> {{-60, 60}, {-60, 60}}, Frame -> True, 
+       FrameTicks -> None]],
+     
+     Show[
+      Graphics[{color1, 
+        Thickness[
+         0.01], {Rotate[Circle[r[[1]][[t]], {a2, b2}], 
+          phi[[1]][[t]]]}, {color2, 
+         Rotate[Circle[r[[2]][[t]], {a2, b2}], phi[[2]][[t]]]},
+        Text[
+         Style["t=" <> ToString[t], 20, Italic, Black, 
+          FontFamily -> "Cambria Math"], {0, 51}]},
+       PlotRange -> {{-60, 60}, {-60, 60}}, Frame -> True, 
+       FrameTicks -> None],
+      ListLinePlot[{Join[{{"", ""}, {"", ""}}, 
+         MovingAverage[r[[1]][[1 ;; t]], 5], {{"", ""}, {"", ""}}],
+        Join[{{"", ""}, {"", ""}}, 
+         MovingAverage[r[[2]][[1 ;; t]], 5], {{"", ""}, {"", ""}}]}, 
+       PlotStyle -> {Directive[color1, Thickness[0.0075]], 
+         Directive[color2, Thickness[0.0075]]}]]], {t, T}];
+  
+  Export[FileName, 
+   GraphicsRow[img, ImageSize -> 1000, Spacings -> 5]]
+  ]
