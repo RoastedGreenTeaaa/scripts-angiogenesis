@@ -1,0 +1,22 @@
+pass = NotebookDirectory[];
+SetDirectory[pass];
+
+Ctr = Result["Control"];
+KO2 = Result["Knockout002"];
+KO5 = Result["Knockout005"];
+
+(*Figure 6A*)
+FileName = "Figure_6A_Control.tif";
+ExportTrajectory2cells[Ctr, {1, 400, 800, 1200, 1600}, FileName];
+FileName = "Figure_6A_Knockout002.tif";
+ExportTrajectory2cells[KO2, {1, 300, 600, 900, 1200}, FileName];
+FileName = "Figure_6A_Knockout005.tif";
+ExportTrajectory2cells[KO5, {1, 150, 300, 450, 600}, FileName];
+
+(*Figure 6B*)
+FileName = "Figure_6B.xlsx";
+ExportDR2cells[ctr, ko2, ko5, FileName];
+
+(*Figure S5I*)
+FileName = "Figure_S5I.xlsx";
+ExportSpeed2cells[ctr, ko2, ko5, FileName];
