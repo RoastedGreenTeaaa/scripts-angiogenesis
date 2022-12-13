@@ -1,0 +1,90 @@
+Clear[FigureSnapshots, FigureRate, FigureSpeedMultiCell, FigureRotationFlattening]
+FigureSnapshots[Sim_] := 
+  Module[{time, file, data, r, phi, ar, br, Img, graph},
+   time = {"00000001", "00000500", "00001000", "00001500", "00002000"};
+   Do[file = "Snapshots\\" <> Sim <> "\\data\\" <> t <> ".txt";
+    data = Transpose[Import[file, "Table"]];
+    r[t] = Transpose[data[[1 ;; 2]]];
+    {phi[t], ar[t], br[t]} = data[[3 ;; 5]], {t, time}];
+   
+   Img[z_, p_, a_, b_] := Module[{color, cell},
+     cell = Length[z];
+     color = Table[ColorData["BlueGreenYellow"][i/cell], {i, cell}];
+     Graphics[{Table[{color[[i]], 
+         Rotate[Disk[z[[i]], {a[[i]], b[[i]]}], p[[i]]]}, {i, cell}]},
+       Frame -> True, FrameTicks -> None, 
+      PlotRange -> {{500, 1600}, {0, 900}}]];
+   
+   graph = Table[Img[r[t], phi[t], ar[t], br[t]], {t, time}];
+   GraphicsRow[graph, Spacings -> 5, ImageSize -> 800]
+   ];
+
+
+FigureRate[Sim_] := 
+  Module[{rate, file, data, r, phi, ar, br, label, Img, graph},
+   rate = {"1_0", "4_1", "1_1", "0_1"};
+   Do[file = 
+     "Comparison_Rate\\" <> Sim <> "\\00001\\Ctr_KO_" <> x <> ".txt";
+    data = Transpose[Import[file, "Table"]];
+    r[x] = Transpose[data[[1 ;; 2]]];
+    {phi[x], ar[x], br[x], label[x]} = data[[3 ;; 6]], {x, rate}];
+   
+   Img[z_, p_, a_, b_, l_] := Module[{color},
+     color = 
+      Table[If[k == 1, GrayLevel[0.3], Darker[Cyan, 0.25]], {k, l}];
+     Graphics[{Table[{color[[i]], 
+         Rotate[Disk[z[[i]], {a[[i]], b[[i]]}], p[[i]]]}, {i, 
+         Length[z]}]}, Frame -> True, FrameTicks -> None, 
+      PlotRange -> {{0, 2500}, {0, 1000}}]];
+   
+   graph = Table[Img[r[x], phi[x], ar[x], br[x], label[x]], {x, rate}];
+   GraphicsRow[graph, Spacings -> 5, ImageSize -> 800]
+   ];
+
+
+FigureSpeedMultiCell[Ctr_, KO002_, KO005_] := 
+  Module[{c1, c2, c3, ctr, ko002, ko005},
+   ImportSpeed[Sim_] := Module[{files},
+     files = FileNames[All, "Speed\\" <> Sim];
+     Table[Import[f, "Table"][[1]][[1]], {f, files}]];
+   c1 = RGBColor[0.199, 0.199, 0.383];
+   c2 = RGBColor[0.258, 0.715, 0.285];
+   c3 = RGBColor[0.703`, 0.703, 0.230];
+   ctr = ImportSpeed[Ctr];
+   ko002 = ImportSpeed[KO002];
+   ko005 = ImportSpeed[KO005];
+   BarChart[Map[MeanAround, {ctr, ko002, ko005}], 
+    ChartStyle -> {c1, c2, c3}, BarSpacing -> 0.5, 
+    ChartLabels -> {"Control", "KO_0.02", "KO_0.05"}, Frame -> True, 
+    FrameTicksStyle -> 15, AspectRatio -> 1, ImageSize -> 300, 
+    PlotRange -> {All, {0, 0.8}}]
+   ];
+
+
+FigureRotationFlattening[Sim_] := 
+ Module[{flattening, gamma1, file, data, r, phi, ar, br, label, Img, 
+   graph},
+  flattening = {"0.800", "0.750", "0.600", "0.300"};
+  gamma1 = {"0.00500", "0.01000", "0.02000", "0.05000"};
+  
+  Do[Do[file = 
+     "Rotation_vs_Flattening\\" <> Sim <> "\\fl_" <> f <> "_gamma1_" <>
+       g <> "\\00010000.txt";
+    data = Transpose[Import[file, "Table"]];
+    r[f, g] = Transpose[data[[1 ;; 2]]];
+    {phi[f, g], ar[f, g], br[f, g], label[f, g]} = data[[3 ;; 6]], {g,
+      gamma1}], {f, flattening}];
+  
+  Img[z_, p_, a_, b_, l_] := Module[{color},
+    color = 
+     Table[If[k == 1, GrayLevel[0.3], Darker[Cyan, 0.25]], {k, l}];
+    Graphics[{Table[{color[[i]], 
+        Rotate[Disk[z[[i]], {a[[i]], b[[i]]}], p[[i]]]}, {i, 
+        Length[z]}]}, Frame -> True, FrameTicks -> None, 
+     PlotRange -> {{0, 2500}, {0, 1500}}]];
+  graph = 
+   Table[Table[
+     Img[r[f, g], phi[f, g], ar[f, g], br[f, g], label[f, g]], {g, 
+      gamma1}], {f, flattening}];
+  GraphicsGrid[graph, Spacings -> 5, ImageSize -> 500]
+  ]
