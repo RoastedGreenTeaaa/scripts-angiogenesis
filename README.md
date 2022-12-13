@@ -1,4 +1,4 @@
-## Introductions of Code Usage <br>
+## Code Usage <br>
 This is a collection of customized scripts (Wolfram Mathematica 13.1) used for analysis of cell motility in our manuscript. Please kindly cite our paper if you used them in your work.
 <br>
 | Figures  | Scripts used |
