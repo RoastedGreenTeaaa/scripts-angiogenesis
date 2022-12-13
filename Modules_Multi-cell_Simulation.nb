@@ -118,7 +118,7 @@ ForwardBackwardBranch[velocity_, list5_, T_, cell_, l0_] := Module[{lh, v0, lst,
             If[Or[Length[fw1] == 1, Length[fw1] == 2],
             fw2 = Transpose[Table[f[[2]], {f, fw1}]];
             fw3 = Abs[Table[DeleteCases[f, ""], {f, fw2}]];
-            mean = Map[Mean, fw3]; sd = Table["", {n, l0}]; 
+            mean = Map[Mean, fw3]/.Mean[{}]->""; sd = Table["", {n, l0}]; 
             num = Map[Length, fw3],
             fw2 = Transpose[Table[f[[2]], {f, fw1}]];
             fw3 = Abs[Table[DeleteCases[f, ""], {f, fw2}]];
@@ -163,27 +163,27 @@ TIPDURATION[branch_, pass5_, frame_, index_] := Module[{myPos, brT, displacement
     Table[If[tip0[[n + 1]] != tip0[[n]], k = k + 1, Nothing], {n, Length[tip0]-1}];
     tipnum = k;
     passingnum = Length[Flatten[pass5, 2]]/2;
-    {N[passingnum], N[5*frame/tipnum], displacement, displacement/tipnum}
+    {N[passingnum], N[frame/tipnum], displacement, displacement/tipnum}
     ];
 
 
-Result[Type_, TipStalk_] := Module[{dth = 20, idx = {0, 2}, fn, files, tip1, tip2, sl, l0x, l0, pm5, data, T, cell, frame, r, crd,
-    SMA, Distance, branch, vb, pass5, list5, velocity, vb5m, allpairvb, FWBranch, BWBranch, DistBranch, TipDuration},  
-    fn = Transpose[Import["Tip_List.xlsx", {"Data", Type}]];
-    files = StringTake[fn[[1]], {2, -2}];
-    {tip1, tip2} = {IntegerPart[fn[[2]]], IntegerPart[fn[[3]]]};
-    sl = Length[files];
-    If[Type == "Ring_assay", l0x = 10, l0x = 5];
+Result[Type_, TipStalk_] := Module[{dth = 30, idx = {0}, l0x = 5, myPos, fn, files, tip1, tip2, sl, l0, pm5, data, T, cell, frame, r, crd,
+    SMA, Distance, branch, vb, pass5, list5, velocity, vb5m, allpairvb, FWBranch, BWBranch, DistBranch, TipDuration},
+    myPos[list_] := FirstPosition[list, Max[DeleteCases[list, ""]]][[1]];
     l0 = l0x*2 + 1;
     pm5 = {Table[n, {n, -l0x, l0x}]};
+    files = FileNames[All, Type];
+    sl = Length[files];
     Do[
-        data = Import[Type <> "\\" <> files[[s]] <> ".xlsx"][[1]];
+        data = Import[files[[s]], "Data"][[1]];
         T[s] = DeleteCases[data[[1]][[2 ;; All]], ""];
         cell[s] = Length[DeleteCases[data[[1]][[2 ;; All]], ""]];
-        frame[s] = IntegerPart[Last[Transpose[data][[1]]]];
         r[s] = Table[crd = Transpose[{Transpose[data][[2 i]][[2 ;; All]], Transpose[data][[2 i + 1]][[2 ;; All]]}];
-        Table[If[xy != {"", ""}, xy, {"", ""}], {xy, crd}], {i,cell[s]}]
-    ,{s, 1, sl}];
+        Table[If[xy != {"", ""}, xy, {"", ""}], {xy, crd}], {i, cell[s]}];
+        frame[s] = Length[Transpose[r[s]]]
+    ,{s, sl}];
+    tip1 = Table[myPos[Table[z[[1]][[2]], {z, r[s]}]], {s, sl}];
+    tip2 = Table[myPos[Table[z[[-1]][[2]], {z, r[s]}]], {s, sl}];
   
     Do[Do[
         SMA[s, index] = mySMA[r[s], index, frame[s], cell[s]];
@@ -204,26 +204,19 @@ Result[Type_, TipStalk_] := Module[{dth = 20, idx = {0, 2}, fn, files, tip1, tip
     
     
 CtrKOExportTip[Ctr_, KO_, FileName_] := Module[{xctr, xko, label, sprout, j, tip},
-    xctr = Transpose[Ctr[[2]][[8]]];
-    xko = Transpose[KO[[2]][[8]]];
-    label = {"Passing time of cells in branch elongation", "Tip duration", "Vessel elongation", "Elongation drive"};
+    xctr = Transpose[Ctr[[1]][[8]]];
+    xko = Transpose[KO[[1]][[8]]];
+    label = {"Passing time of cells in branch elongation", "Tip duration"};
     tip = Table[sprout = Join[{""}, Table["Sprout-" <> ToString[i], {i, Length[xctr[[j]]]}]];
-    Join[{{label[[j]], "", ""}}, Transpose[{sprout, Join[{"Control"}, xctr[[j]]], Join[{"VE-cadherin KO"}, xko[[j]]]}]], {j, 4}];
-    Export[FileName, {"Fig_4H" -> tip[[1]], "Fig_4I" -> tip[[2]], "Fig_4J" -> tip[[3]], "Fig_4K" -> tip[[4]]}]
+    Join[{{label[[j]], "", ""}}, Transpose[{sprout, Join[{"Control"}, xctr[[j]]], Join[{"VE-cadherin KO"}, xko[[j]]]}]], {j, 2}];
+    Export[FileName, {"Fig_6H" -> tip[[1]], "Fig_6I" -> tip[[2]]}]
     ];
 
 
-ExportPassing[result_, FileName_] := Module[{myBin, PassingNotPassing, notpassing, passing, notpassingmean, 
-     passingmean, notpassingbin, passingbin, sl, ln, sproutlabel1, sproutlabel2, label, MeanSpeed, NotPassing, Passing},
-     myBin[list_] := Module[{bin, totalbin, freq},
-        bin = Map[Function[x, BinCounts[x, {0, 10, 0.25}]], list];
-        totalbin = Total[bin];
-        freq = N[totalbin/Total[totalbin]];
-        Join[bin, {totalbin}, {freq}]
-        ]; 
-     PassingNotPassing[x_] :=  Module[{vb0, pass5, sl2, len, passing0, m, pass0, pass1, notpassing0},
-        vb0 = x[[2]][[2]];
-        pass5 = x[[2]][[3]];
+ExportPassing[result_, FileName_] := Module[{PassingNotPassing, notpassing, passing, notpassingmean, passingmean, sl, ln, sproutlabel1, MeanSpeed},
+        PassingNotPassing[x_] :=  Module[{vb0, pass5, sl2, len, passing0, m, pass0, pass1, notpassing0},
+        vb0 = x[[1]][[2]];
+        pass5 = x[[1]][[3]];
         sl2 = Length[vb0];
         len = Length[vb0[[1]][[1]]];
         passing0 = Table[m = 0;
@@ -242,17 +235,10 @@ ExportPassing[result_, FileName_] := Module[{myBin, PassingNotPassing, notpassin
      {notpassing, passing} = PassingNotPassing[result];    
      notpassingmean = Map[Mean, notpassing];
      passingmean = Map[Mean, passing];
-     notpassingbin = myBin[notpassing];
-     passingbin = myBin[passing];
      sl = Length[notpassingmean];
-     ln = Length[Transpose[notpassingbin]];
      sproutlabel1=Prepend[Table["Sprout-" <> ToString[s], {s, sl}], ""];
-     label = Table[ToString[0.25 (i - 1)] <> "\[LessEqual]v<" <> ToString[0.25 i], {i, 1, ln}];
-     sproutlabel2 = Join[Table["Sprout-" <> ToString[s], {s, sl}], {"SUM", "Relative frequency"}]; 
      MeanSpeed = Transpose[{sproutlabel1, Prepend[notpassingmean, "Not passing"], Prepend[passingmean, "Passing"]}];
-     NotPassing = Prepend[Transpose[Prepend[notpassingbin, label]], Join[{"Speed"}, sproutlabel2]];
-     Passing = Prepend[Transpose[Prepend[passingbin, label]], Join[{"Speed"}, sproutlabel2]];
-     Export[FileName, {"MeanSpeed" -> MeanSpeed, "NotPassing" -> NotPassing, "Passing" -> Passing}]
+     Export[FileName, {"MeanSpeed" -> MeanSpeed}]
      ];
 
 
