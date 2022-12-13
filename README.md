@@ -10,4 +10,5 @@ This is a collection of customized scripts (Wolfram Mathematica 13.1) used for a
 | Figure 4H-K and Figure S3F-I| Modules_Sprouting.np <br> Output_sprouting_Control_Knockout.nb |
 | Figure 6E, G-I and Figure S5K | Modules_Multi-cell_Simulation.nb <br> Output_Multi-cell_Simulation.nb |
 | Figure S1H, I | Modules_Sprouting.np <br> Output_sprouting_Ring_assay.nb |
+| Figure 6A, B and Figure S5I| Modules_2cells_Simulation.nb <br> Output_2cells_Simulation.nb |
 | Figure 6C and Figure 7G <br> Figure S5J, M, N and Figure S6C| Modules_Multi-Cells.nb <br> Output_Multi-Cells.nb |
