@@ -1,0 +1,23 @@
+pass = NotebookDirectory[];
+SetDirectory[pass];
+
+WT = Result["Wild_type"];
+KO = Result["VE-cad_KO"];
+EGFP = Result["VE-cad_KO_EGFP"];
+DEE = Result["DEEmut_EGFP"];
+
+(*Figure 5E*)
+FileName = "Figure_5E.xlsx";
+ExportCorr[WT, KO, FileName];
+
+(*Figure 5F*)
+FileName = "Figure_5F.xlsx";
+ExportDR4cells[WT, KO, EGFP, DEE, FileName];
+
+(*Figure 5G*)
+FileName = "Figure_5G.xlsx";
+ExportRatio4cells[WT, KO, EGFP, DEE, FileName];
+
+(*Figure 5H*)
+FileName = "Figure_5H.xlsx";
+ExportSpeed4cells[WT, KO, EGFP, DEE, FileName];
