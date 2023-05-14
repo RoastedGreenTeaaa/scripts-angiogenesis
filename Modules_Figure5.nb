@@ -1,0 +1,154 @@
+Clear[mySMA, DR, MeanSPEED, RotationalTime, RotationalTimeRatio, \
+Corr, Result, ExportCorr, ExportDR4cells, ExportRatio4cells, \
+ExportSpeed4cells]
+mySMA[r_, index_, frame_, cell_] := Module[{blank, sma, r1},
+   If[index != 0,
+    blank = Table[{"", ""}, {j, 1, index}];
+    Table[sma = Table[r1 = r[[i]][[n ;; n + 2 index]];
+       If[MemberQ[r1, {"", ""}], {"", ""}, Mean[r1]], {n, 1, 
+        frame - 2 index}];
+     Join[blank, sma, blank], {i, cell}], r]];
+
+MeanSPEED[SMA5_, frame_] := Module[{sp, Allsp},
+   sp = Table[
+     Table[If[And[x[[n]] != {"", ""}, x[[n + 1]] != {"", ""}], 
+       Norm[x[[n + 1]] - x[[n]]], ""], {n, 1, frame - 1}], {x, 
+      SMA5}];
+   Allsp = 
+    DeleteCases[
+     Table[Mean[DeleteCases[v, ""]], {v, sp}] /. Mean[{}] -> "", ""];
+   Map[Mean, Partition[Allsp, 2]]];
+
+
+DR[SMA5_, frame_] := Module[{DRall, dr0, d0, d1, d2},
+   DRall = Table[x = DeleteCases[x, {"", ""}];
+     dr0 = Table[d0 = x[[1 ;; t]];
+       d1 = EuclideanDistance[d0[[1]], d0[[t]]];
+       d2 = Total[Sqrt[Total[Differences[d0]^2, {2}]]];
+       If[d2 != 0.0, d1/d2, Nothing], {t, 2, Length[x]}];
+     Join[dr0, Table["", {n, frame - Length[dr0]}]], {x, SMA5}]];
+
+RotationalTime[SMA5_] := Module[
+   {FuncRotTime, q = 120 \[Pi]/180, zi, zj, formed, vi, vj, sup0, sup,
+     RT},
+   
+   FuncRotTime[sup_] :=
+    Module[{fr = 12, k, l, m, m0, set, good, x},
+     m = 1;
+     l = 0;
+     Table[If[sup[[n + 1]] - sup[[n]] == 1, l = l + 1;
+       set[m][l] = sup[[n]], set[m][l + 1] = sup[[n]];
+       k[m] = l + 1;
+       m = m + 1;
+       l = 0], {n, Length[sup] - 1}];
+     m0 = m - 1;
+     good = {};
+     Table[x = Table[set[m][l], {l, k[m]}];
+      If[Length[x] >= fr, AppendTo[good, x], Nothing], {m, m0}];
+     good];
+   
+   RT = Table[{zi, zj} = {DeleteCases[SMA5[[2 i - 1]], {"", ""}], 
+       DeleteCases[SMA5[[2 i]], {"", ""}]};
+     formed = Table[
+       vi = zi[[n + 1]] - zi[[n]];
+       vj = zj[[n + 1]] - zj[[n]];
+       If[And[vi != {0.0, 0.0}, vj != {0.0, 0.0}], 
+        VectorAngle[vi, vj], ""], {n, Length[zi] - 1}];
+     
+     sup0 = 
+      Table[If[And[formed[[k]] != "", formed[[k]] >= q], k, 
+        Nothing], {k, Length[formed]}];
+     sup = Join[sup0, {10000}];
+     RT[i] = FuncRotTime[sup], {i, Length[SMA5]/2}];
+   RT];
+
+
+RotationalTimeRatio[SMA5_, TimeRatio_] := 
+  Table[N[Length[Flatten[TimeRatio[[i]]]]/
+     Length[DeleteCases[SMA5[[2 i - 1]], {"", ""}]]], {i, 
+    Length[SMA5]/2}];
+
+Corr[SMA11_] := Module[{z1, z2, v1, v2},
+   Table[z1 = DeleteCases[SMA11[[2 i - 1]], {"", ""}];
+    z2 = DeleteCases[SMA11[[2 i]], {"", ""}];
+    v1 = Map[Norm, Differences[z1]];
+    v2 = Map[Norm, Differences[z2]];
+    Correlation[v1, v2], {i, Length[SMA11]/2}]];
+
+Result[CellType_] := Module[
+   {DirName = "datasets\\", index = 2, data, cell, frame, r, SMA5, 
+    SPCorrelation, dr, RotTime, ratio, MeanSpeed},
+   
+   data = 
+    Transpose[Import[DirName <> CellType <> ".xlsx", "Data"][[1]]];
+   cell = 
+    2*Length[
+      DeleteCases[Transpose[data][[1]][[2; All]], ""][[2 ;; All]]];
+   frame = Length[data[[1]][[2 ;; All]]];
+   r = Table[
+     Transpose[{data[[2 i]][[2 ;; All]], 
+       data[[2 i + 1]][[2 ;; All]]}], {i, cell}];
+   SMA5 = mySMA[r, index, frame, cell];
+   
+   SPCorrelation = Corr[SMA5];
+   dr = DR[SMA5, frame];
+   RotTime = RotationalTime[SMA5];
+   ratio = RotationalTimeRatio[SMA5, RotTime];
+   MeanSpeed = MeanSPEED[SMA5, frame];
+   
+   {SPCorrelation, dr, ratio, MeanSpeed}];
+
+
+ExportCorr[WT_, KO_, FileName_] := Module[{wtCorr, koCorr, result},
+   wtCorr = WT[[1]];
+   koCorr = KO[[1]];
+   
+   result = 
+    Join[{{"Wild type", "VE-cadherin KO"}}, 
+     Transpose[{wtCorr, koCorr}]];
+   Export[FileName, result]];
+
+ExportDR4cells[WT_, KO_, EGFP_, DEE_, FileName_] := 
+  Module[{wt, ko, egfp, dee, Maxln, speed},
+   wt = Transpose[WT[[2]]][[1 ;; 179]];
+   ko = Transpose[KO[[2]]][[1 ;; 179]];
+   egfp = Transpose[EGFP[[2]]][[1 ;; 179]];
+   dee = Transpose[DEE[[2]]][[1 ;; 179]];
+   Export[
+    FileName, {"WT" -> wt, "VE-cad.KO" -> ko, "EGFP" -> egfp, 
+     "DEEmut" -> dee}]];
+
+
+ExportRatio4cells[WT_, KO_, EGFP_, DEE_, FileName_] := 
+  Module[{wt, ko, egfp, dee, Maxln, ratio},
+   wt = WT[[3]];
+   ko = KO[[3]];
+   egfp = EGFP[[3]];
+   dee = DEE[[3]];
+   Maxln = Max[Map[Length, {wt, ko, egfp, dee}]];
+   ratio = 
+    Transpose[
+     Table[Join[CellType, 
+       Table["", {n, Maxln - Length[CellType]}]], {CellType, {wt, ko, 
+        egfp, dee}}]];
+   Export[FileName, 
+    Join[{{"Wild-type", "VE-cadherin KO", 
+       "VE-cadherin KO+VE-cadherin-EGFP", 
+       "VE-cadherin KO+DEEmut-EGFP"}}, ratio]]];
+
+ExportSpeed4cells[WT_, KO_, EGFP_, DEE_, FileName_] := 
+  Module[{wt, ko, egfp, dee, Maxln, speed},
+   wt = WT[[4]];
+   ko = KO[[4]];
+   egfp = EGFP[[4]];
+   dee = DEE[[4]];
+   Maxln = Max[Map[Length, {wt, ko, egfp, dee}]];
+   speed = 
+    Transpose[
+     Table[Join[CellType, 
+       Table["", {n, Maxln - Length[CellType]}]], {CellType, {wt, ko, 
+        egfp, dee}}]];
+   Export[FileName, 
+    Join[{{"Wild-type", "VE-cadherin KO", 
+       "VE-cadherin KO+VE-cadherin-EGFP", 
+       "VE-cadherin KO+DEEmut-EGFP"}}, speed]]];
