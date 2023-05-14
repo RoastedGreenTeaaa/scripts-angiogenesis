@@ -1,6 +1,4 @@
-Clear[mySMA, DR, MeanSPEED, RotationalTime, RotationalTimeRatio, \
-Corr, Result, ExportCorr, ExportDR4cells, ExportRatio4cells, \
-ExportSpeed4cells]
+Clear[mySMA, DR, MeanSPEED, RotationalTime, RotationalTimeRatio, Corr, Result, ExportCorr, ExportDR4cells, ExportRatio4cells, ExportSpeed4cells]
 mySMA[r_, index_, frame_, cell_] := Module[{blank, sma, r1},
    If[index != 0,
     blank = Table[{"", ""}, {j, 1, index}];
@@ -29,8 +27,7 @@ DR[SMA5_, frame_] := Module[{DRall, dr0, d0, d1, d2},
      Join[dr0, Table["", {n, frame - Length[dr0]}]], {x, SMA5}]];
 
 RotationalTime[SMA5_] := Module[
-   {FuncRotTime, q = 120 \[Pi]/180, zi, zj, formed, vi, vj, sup0, sup,
-     RT},
+   {FuncRotTime, q = 120 \[Pi]/180, zi, zj, formed, vi, vj, sup0, sup, RT},
    
    FuncRotTime[sup_] :=
     Module[{fr = 12, k, l, m, m0, set, good, x},
