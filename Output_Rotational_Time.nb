@@ -5,8 +5,6 @@ MS1 = Result["MS-1_cell_All"];
 MDCK = Result["MDCK_All"];
 Vero = Result["Vero_All"];
 COS7 = Result["COS7_All"];
-CONTROL = Result["Control_2cell_All"];
-KO = Result["VE-cadherin_KO_2cell_All"];
 
 (*Figure 3D*)
 FileName = "Figure_3D.xlsx";
@@ -19,11 +17,3 @@ ExportMeanRotSpeed[MS1, FileName];
 (*Figure 3F*)
 FileName = "Figure_3F.xlsx";
 ExportHistMS1[MS1, FileName];
-
-(*Figure 5B*)
-FileName = "Figure_5B.xlsx";
-ExportRotationalTime[CONTROL, KO, FileName];
-
-(*Figure 5D*)
-FileName = "Figure_5D.xlsx";
-ExportCorr[CONTROL, KO, FileName];
