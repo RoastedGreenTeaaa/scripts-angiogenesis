@@ -1,5 +1,5 @@
 ## Code Usage <br>
-This is a collection of customized scripts (Wolfram Mathematica 13.1 and Fortran 90) used for analysis of cell motility in our manuscript. Please kindly cite our paper if you used them in your work.
+This is a collection of customized scripts (Wolfram Mathematica 13.1 and Fortran 90) used for analysis of cell motility in [Tonami et al., 2023](https://www.sciencedirect.com/science/article/pii/S2589004223011288). Please kindly cite our paper if you used them in your work.
 <br>
 | Figures  | Scripts used |
 | :--- | ------------- |
